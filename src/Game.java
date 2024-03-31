@@ -72,20 +72,30 @@ public class Game {
 
         System.out.println(playerName + " pick a column");
 
-        // TODO: ADD TRY CATCH
-        int position = input.nextInt() - 1;
+        int position = 0;
+        boolean isValid = false;
+        while(!isValid) {
+            try {
+                position = input.nextInt() - 1;
 
-        if (position < 0 || position > boardColumns) {
-            System.out.println("Must be a value from 1 to 7! Pick again ");
-            return false;
+                if (position < 0 || position > boardColumns) {
+                    System.out.println("Must be a value from 1 to 7! Pick again ");
+                    continue;
+                }
+
+                if (!board[position].equals("O")) {
+                    System.out.println("This column is already full!");
+                } else {
+                    isValid = true;
+                }
+
+            } catch (Exception e) {
+                input.nextLine();
+                System.out.println("Must be an integer value ");
+            }
         }
 
         boolean isEmpty = board[position].equals("O");
-        if (!isEmpty) {
-            System.out.println("This column is already full!");
-            return false;
-        }
-
         while (isEmpty && position + boardColumns < board.length) {
             int newPosition = position + boardColumns;
             isEmpty = board[newPosition].equals("O");
@@ -143,18 +153,24 @@ public class Game {
         return false;
     }
 
-    public boolean checkLine(int start, int direction){
-        String symbol = board[start];
+    public boolean checkLine(int cell, int change){
+        String symbol = board[cell];
         if (symbol.equals("O")) {
             return false;
         }
 
-        for (int i = 1; i < 4; i++) {
-            int change = direction * i;
-            if (!board[start+change].equals(symbol)) {
-                return false;
-            }
+        return checkLine(cell+change, change, symbol, 1);
+    }
+
+    public boolean checkLine(int cell, int change, String symbol, int count){
+        if (!symbol.equals(board[cell])) {
+            return false;
         }
-        return true;
+
+        count++;
+        if (count == 4) {
+            return true;
+        }
+        return checkLine(cell+change, change, symbol, count);
     }
 }
