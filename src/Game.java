@@ -55,19 +55,17 @@ public class Game {
     public void playGame(){
         printBoard(board);
         while (true) {
-            dropDisk(playerName1, symbol1);
-            if (checkWinner()) {
+            if (playerAction(playerName1, symbol1)) {
                 System.out.println("Congratulations " + playerName1 + "! You win!");
                 break;
             }
-            dropDisk(playerName2, symbol2);
-            if (checkWinner()) {
+            if (playerAction(playerName2, symbol2)) {
                 System.out.println("Congratulations " + playerName2 + "! You win!");
                 break;
             }
         }
     }
-    public boolean dropDisk(String playerName, String symbol) {
+    public boolean playerAction(String playerName, String symbol) {
         Scanner input = new Scanner(System.in);
 
         System.out.println(playerName + " pick a column");
@@ -83,7 +81,7 @@ public class Game {
                     continue;
                 }
 
-                if (!board[position].equals("O")) {
+                if (!dropDisk(board, symbol, position)) {
                     System.out.println("This column is already full!");
                 } else {
                     isValid = true;
@@ -94,7 +92,11 @@ public class Game {
                 System.out.println("Must be an integer value ");
             }
         }
+        printBoard(board);
+        return checkWinner(board);
+    }
 
+    public boolean dropDisk(String[] board, String symbol, int position) {
         boolean isEmpty = board[position].equals("O");
         while (isEmpty && position + boardColumns < board.length) {
             int newPosition = position + boardColumns;
@@ -105,17 +107,20 @@ public class Game {
             }
         }
 
+        if (!board[position].equals("O")) {
+            return false;
+        }
+
         board[position] = symbol;
-        printBoard(board);
         return true;
     }
 
-    public boolean checkWinner(){
+    public boolean checkWinner(String[] board){
         // horizontal
         for (int row = 0; row < boardRows; row++) {
             for (int column = 0; column < boardColumns - 3; column++) {
                 int cell = row * boardColumns + column;
-                if (checkLine(cell, 1)) {
+                if (checkLine(board, cell, 1)) {
                     return true;
                 }
             }
@@ -125,7 +130,7 @@ public class Game {
         for (int row = 0; row < boardRows - 3; row++) {
             for (int column = 0; column < boardColumns; column++) {
                 int cell = row * boardColumns + column;
-                if (checkLine(cell, boardColumns)) {
+                if (checkLine(board, cell, boardColumns)) {
                     return true;
                 }
             }
@@ -135,7 +140,7 @@ public class Game {
         for (int row = 0; row < boardRows - 3; row++) {
             for (int column = 3; column < boardColumns; column++) {
                 int cell = row * boardColumns + column;
-                if (checkLine(cell, boardColumns - 1)) {
+                if (checkLine(board, cell, boardColumns - 1)) {
                     return true;
                 }
             }
@@ -145,7 +150,7 @@ public class Game {
         for (int row = 0; row < boardRows - 3; row++) {
             for (int column = 0; column < boardColumns - 3; column++) {
                 int cell = row * boardColumns + column;
-                if (checkLine(cell, boardColumns + 1)) {
+                if (checkLine(board, cell, boardColumns + 1)) {
                     return true;
                 }
             }
@@ -153,7 +158,7 @@ public class Game {
         return false;
     }
 
-    public boolean checkLine(int cell, int change){
+    public boolean checkLine(String[] board, int cell, int change){
         String symbol = board[cell];
         if (symbol.equals("O")) {
             return false;
@@ -172,5 +177,57 @@ public class Game {
             return true;
         }
         return checkLine(cell+change, change, symbol, count);
+    }
+
+    public int max(String[] board, String symbol, int column, int movesCount) {
+        String[] newBoard = board.clone();
+
+        if (dropDisk(newBoard, symbol, column)) {
+            // something went wrong here
+            System.out.println("Check logic, AI stooopid");
+            return -100;
+        }
+        if (checkWinner(newBoard)) {
+            return 50 - movesCount;
+        }
+
+        int maxValue = -100;
+        for (int i = 0; i < boardColumns; i++) {
+            if (!newBoard[i].equals("O")) {
+                continue;
+            }
+
+            int score = min(newBoard, symbol, i, movesCount + 1);
+            if (score > maxValue) {
+                maxValue = score;
+            }
+        }
+        return maxValue;
+    }
+
+    public int min(String[] board, String symbol, int column, int movesCount) {
+        String[] newBoard = board.clone();
+
+        if (dropDisk(newBoard, symbol, column)) {
+            // something went wrong here
+            System.out.println("Check logic, AI stooopid");
+            return -100;
+        }
+        if (checkWinner(newBoard)) {
+            return -50 - movesCount;
+        }
+
+        int minValue = 100;
+        for (int i = 0; i < boardColumns; i++) {
+            if (!newBoard[i].equals("O")) {
+                continue;
+            }
+
+            int score = max(newBoard, symbol, i, movesCount + 1);
+            if (score < minValue) {
+                minValue = score;
+            }
+        }
+        return minValue;
     }
 }
